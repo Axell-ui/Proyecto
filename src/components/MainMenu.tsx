@@ -1,11 +1,12 @@
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { UniversePortal } from './UniversePortal';
-import { Sparkles, Trophy } from 'lucide-react';
+import { Sparkles, Trophy, ArrowLeft } from 'lucide-react';
 import type { Universe } from '../App';
 
 interface MainMenuProps {
   onUniverseSelect: (universe: Universe) => void;
   unlockedPowers: Universe[];
+  onBackToLobby?: () => void;
 }
 
 const universes: Array<{
@@ -52,7 +53,7 @@ const universes: Array<{
   }
 ];
 
-export function MainMenu({ onUniverseSelect, unlockedPowers }: MainMenuProps) {
+export function MainMenu({ onUniverseSelect, unlockedPowers, onBackToLobby }: MainMenuProps) {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Animated Background */}
@@ -80,6 +81,23 @@ export function MainMenu({ onUniverseSelect, unlockedPowers }: MainMenuProps) {
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 py-12">
+        {/* Back Button */}
+        {onBackToLobby && (
+          <motion.div
+            initial={{ x: -50, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            className="mb-8"
+          >
+            <button
+              onClick={onBackToLobby}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-xl backdrop-blur-sm border border-gray-700 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>Volver al Lobby</span>
+            </button>
+          </motion.div>
+        )}
+
         {/* Header */}
         <motion.div
           initial={{ y: -50, opacity: 0 }}

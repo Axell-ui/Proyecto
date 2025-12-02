@@ -113,7 +113,7 @@ function ChartTooltipContent({
   hideIndicator = false,
   label,
   labelFormatter,
-  labelClassName,
+  labelClassName, // eslint-disable-line @typescript-eslint/no-unused-vars
   formatter,
   color,
   nameKey,
@@ -126,7 +126,7 @@ function ChartTooltipContent({
     nameKey?: string;
     labelKey?: string;
   }) {
-  const { config } = useChart();
+  const { config } = useChart(); // eslint-disable-line @typescript-eslint/no-unused-vars
 
   const tooltipLabel = React.useMemo(() => {
     if (hideLabel || !payload?.length) {

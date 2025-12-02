@@ -1,7 +1,13 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Heart, Swords, Zap, Shield } from 'lucide-react';
-import type { Universe } from '../App';
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ArrowLeft,
+  Heart,
+  Swords,
+  Zap,
+  Shield,
+} from "lucide-react";
+import type { Universe } from "../App";
 
 interface BossFightProps {
   universe: Universe;
@@ -11,73 +17,78 @@ interface BossFightProps {
 
 const bossConfig = {
   volcania: {
-    name: 'Ignis el Destructor',
-    emoji: '🐉',
-    gradient: 'from-orange-600 via-red-600 to-amber-600',
-    bgGradient: 'from-orange-950 via-red-950 to-black',
-    glowColor: '#ff4500',
-    attacks: ['Llamarada', 'Meteorito', 'Erupción'],
+    name: "Ignis el Destructor",
+    emoji: "🐉",
+    gradient: "from-orange-600 via-red-600 to-amber-600",
+    bgGradient: "from-orange-950 via-red-950 to-black",
+    glowColor: "#ff4500",
+    attacks: ["Llamarada", "Meteorito", "Erupción"],
   },
   frostheim: {
-    name: 'Glacius el Eterno',
-    emoji: '🧊',
-    gradient: 'from-cyan-400 via-blue-500 to-indigo-500',
-    bgGradient: 'from-cyan-950 via-blue-950 to-black',
-    glowColor: '#00d4ff',
-    attacks: ['Ventisca', 'Lanza Helada', 'Congelación'],
+    name: "Glacius el Eterno",
+    emoji: "🧊",
+    gradient: "from-cyan-400 via-blue-500 to-indigo-500",
+    bgGradient: "from-cyan-950 via-blue-950 to-black",
+    glowColor: "#00d4ff",
+    attacks: ["Ventisca", "Lanza Helada", "Congelación"],
   },
   neural: {
-    name: 'Synapse la Mente',
-    emoji: '🤖',
-    gradient: 'from-emerald-400 via-teal-500 to-cyan-500',
-    bgGradient: 'from-emerald-950 via-teal-950 to-black',
-    glowColor: '#00ff88',
-    attacks: ['Pulso Mental', 'Sobrecarga', 'Hackeo Neural'],
+    name: "Synapse la Mente",
+    emoji: "🤖",
+    gradient: "from-emerald-400 via-teal-500 to-cyan-500",
+    bgGradient: "from-emerald-950 via-teal-950 to-black",
+    glowColor: "#00ff88",
+    attacks: ["Pulso Mental", "Sobrecarga", "Hackeo Neural"],
   },
   verdalis: {
-    name: 'Gaia la Ancestral',
-    emoji: '🌳',
-    gradient: 'from-lime-500 via-green-500 to-emerald-600',
-    bgGradient: 'from-lime-950 via-green-950 to-black',
-    glowColor: '#7fff00',
-    attacks: ['Enredadera', 'Esporas Tóxicas', 'Terremoto'],
+    name: "Gaia la Ancestral",
+    emoji: "🌳",
+    gradient: "from-lime-500 via-green-500 to-emerald-600",
+    bgGradient: "from-lime-950 via-green-950 to-black",
+    glowColor: "#7fff00",
+    attacks: ["Enredadera", "Esporas Tóxicas", "Terremoto"],
   },
   lunaris: {
-    name: 'Noctis el Oscuro',
-    emoji: '🌑',
-    gradient: 'from-purple-400 via-violet-500 to-purple-600',
-    bgGradient: 'from-purple-950 via-violet-950 to-black',
-    glowColor: '#b19cd9',
-    attacks: ['Eclipse', 'Rayo Lunar', 'Void'],
+    name: "Noctis el Oscuro",
+    emoji: "🌑",
+    gradient: "from-purple-400 via-violet-500 to-purple-600",
+    bgGradient: "from-purple-950 via-violet-950 to-black",
+    glowColor: "#b19cd9",
+    attacks: ["Eclipse", "Rayo Lunar", "Void"],
   },
 };
 
-export function BossFight({ universe, onBossDefeated, onBackToMenu }: BossFightProps) {
+export function BossFight({
+  universe,
+  onBossDefeated,
+  onBackToMenu,
+}: BossFightProps) {
   const boss = bossConfig[universe];
   const [bossHealth, setBossHealth] = useState(100);
   const [playerHealth, setPlayerHealth] = useState(100);
   const [isAttacking, setIsAttacking] = useState(false);
   const [bossAttacking, setBossAttacking] = useState(false);
-  const [currentAttack, setCurrentAttack] = useState('');
+  const [currentAttack, setCurrentAttack] = useState("");
   const [shakeScreen, setShakeScreen] = useState(false);
   const [showDefeat, setShowDefeat] = useState(false);
 
   const handleAttack = () => {
     if (isAttacking || bossAttacking) return;
-    
+
     setIsAttacking(true);
     const damage = 15 + Math.floor(Math.random() * 10);
-    
+
     setTimeout(() => {
-      setBossHealth(Math.max(0, bossHealth - damage));
-      setIsAttacking(false);
-      
-      if (bossHealth - damage <= 0) {
+      const newBossHealth = Math.max(0, bossHealth - damage);
+      setBossHealth(newBossHealth);
+
+      if (newBossHealth <= 0) {
         setShowDefeat(true);
         setTimeout(() => onBossDefeated(), 2000);
       } else {
         // Boss counter-attack
         setTimeout(() => {
+          setIsAttacking(false);
           bossCounterAttack();
         }, 1000);
       }
@@ -87,16 +98,19 @@ export function BossFight({ universe, onBossDefeated, onBackToMenu }: BossFightP
   const bossCounterAttack = () => {
     setBossAttacking(true);
     setShakeScreen(true);
-    const attack = boss.attacks[Math.floor(Math.random() * boss.attacks.length)];
+    const attack =
+      boss.attacks[
+        Math.floor(Math.random() * boss.attacks.length)
+      ];
     setCurrentAttack(attack);
-    
+
     const damage = 10 + Math.floor(Math.random() * 15);
-    
+
     setTimeout(() => {
       setPlayerHealth(Math.max(0, playerHealth - damage));
       setBossAttacking(false);
       setShakeScreen(false);
-      setCurrentAttack('');
+      setCurrentAttack("");
     }, 1500);
   };
 
@@ -117,10 +131,10 @@ export function BossFight({ universe, onBossDefeated, onBackToMenu }: BossFightP
           transition={{
             duration: 15,
             repeat: Infinity,
-            ease: 'linear',
+            ease: "linear",
           }}
         />
-        
+
         {/* Lightning/Energy Bolts */}
         {[...Array(20)].map((_, i) => (
           <motion.div
@@ -161,7 +175,9 @@ export function BossFight({ universe, onBossDefeated, onBackToMenu }: BossFightP
             animate={{ scale: 1 }}
             className="text-center"
           >
-            <h2 className="text-3xl text-red-500">¡JEFE FINAL!</h2>
+            <h2 className="text-3xl text-red-500">
+              ¡JEFE FINAL!
+            </h2>
           </motion.div>
 
           <div className="w-32" />
@@ -172,34 +188,40 @@ export function BossFight({ universe, onBossDefeated, onBackToMenu }: BossFightP
           <motion.div
             initial={{ y: -200, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 100 }}
+            transition={{ type: "spring", stiffness: 100 }}
             className="text-center mb-6"
           >
-            <h3 className="text-2xl mb-2" style={{ textShadow: `0 0 20px ${boss.glowColor}` }}>
+            <h3
+              className="text-2xl mb-2"
+              style={{
+                textShadow: `0 0 20px ${boss.glowColor}`,
+              }}
+            >
               {boss.name}
             </h3>
-            
+
             {/* Boss Health Bar */}
             <div className="w-96 h-8 bg-gray-800 rounded-full border-2 border-gray-700 overflow-hidden mb-4">
               <motion.div
                 className={`h-full bg-gradient-to-r ${boss.gradient} relative`}
-                initial={{ width: '100%' }}
+                initial={{ width: "100%" }}
                 animate={{ width: `${bossHealth}%` }}
                 transition={{ duration: 0.5 }}
               >
                 <motion.div
                   className="absolute inset-0"
                   animate={{
-                    backgroundPosition: ['0% 0%', '100% 100%'],
+                    backgroundPosition: ["0% 0%", "100% 100%"],
                   }}
                   transition={{
                     duration: 1,
                     repeat: Infinity,
-                    ease: 'linear',
+                    ease: "linear",
                   }}
                   style={{
-                    backgroundImage: 'linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.3) 50%, transparent 60%)',
-                    backgroundSize: '200% 200%',
+                    backgroundImage:
+                      "linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.3) 50%, transparent 60%)",
+                    backgroundSize: "200% 200%",
                   }}
                 />
               </motion.div>
@@ -214,7 +236,11 @@ export function BossFight({ universe, onBossDefeated, onBackToMenu }: BossFightP
           <motion.div
             className={`relative w-64 h-64 rounded-full bg-gradient-to-br ${boss.gradient} flex items-center justify-center mb-8`}
             animate={{
-              scale: bossAttacking ? [1, 1.2, 1] : isAttacking ? [1, 0.9, 1] : 1,
+              scale: bossAttacking
+                ? [1, 1.2, 1]
+                : isAttacking
+                  ? [1, 0.9, 1]
+                  : 1,
               boxShadow: [
                 `0 0 40px ${boss.glowColor}`,
                 `0 0 80px ${boss.glowColor}`,
@@ -233,7 +259,11 @@ export function BossFight({ universe, onBossDefeated, onBackToMenu }: BossFightP
           >
             <motion.span
               className="text-9xl"
-              animate={showDefeat ? { rotate: 180, scale: 0 } : { rotate: 0 }}
+              animate={
+                showDefeat
+                  ? { rotate: 180, scale: 0 }
+                  : { rotate: 0 }
+              }
               transition={{ duration: 1 }}
             >
               {boss.emoji}
@@ -265,8 +295,8 @@ export function BossFight({ universe, onBossDefeated, onBackToMenu }: BossFightP
                     className="absolute w-4 h-4 rounded-full"
                     style={{
                       backgroundColor: boss.glowColor,
-                      left: '50%',
-                      top: '50%',
+                      left: "50%",
+                      top: "50%",
                     }}
                     animate={{
                       x: Math.cos((i * Math.PI * 2) / 12) * 200,
@@ -291,7 +321,9 @@ export function BossFight({ universe, onBossDefeated, onBackToMenu }: BossFightP
               >
                 <div className="flex items-center gap-2">
                   <Swords className="w-5 h-5" />
-                  <span className="text-xl">{currentAttack}!</span>
+                  <span className="text-xl">
+                    {currentAttack}!
+                  </span>
                 </div>
               </motion.div>
             )}
@@ -319,18 +351,24 @@ export function BossFight({ universe, onBossDefeated, onBackToMenu }: BossFightP
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleAttack}
-              disabled={isAttacking || bossAttacking || showDefeat}
+              disabled={
+                isAttacking || bossAttacking || showDefeat
+              }
               className={`px-8 py-4 rounded-xl text-xl flex items-center gap-3 ${
                 isAttacking || bossAttacking
-                  ? 'bg-gray-700 cursor-not-allowed'
+                  ? "bg-gray-700 cursor-not-allowed"
                   : `bg-gradient-to-r ${boss.gradient} hover:brightness-110`
               } disabled:opacity-50 border-2 border-white/20`}
               style={{
-                boxShadow: isAttacking ? `0 0 30px ${boss.glowColor}` : 'none',
+                boxShadow: isAttacking
+                  ? `0 0 30px ${boss.glowColor}`
+                  : "none",
               }}
             >
               <Zap className="w-6 h-6" />
-              <span>{isAttacking ? 'Atacando...' : '¡Atacar!'}</span>
+              <span>
+                {isAttacking ? "Atacando..." : "¡Atacar!"}
+              </span>
             </motion.button>
           </div>
         </div>
@@ -354,10 +392,17 @@ export function BossFight({ universe, onBossDefeated, onBackToMenu }: BossFightP
               }}
               className="text-center"
             >
-              <h2 className="text-7xl mb-4" style={{ textShadow: `0 0 40px ${boss.glowColor}` }}>
+              <h2
+                className="text-7xl mb-4"
+                style={{
+                  textShadow: `0 0 40px ${boss.glowColor}`,
+                }}
+              >
                 ¡VICTORIA!
               </h2>
-              <p className="text-2xl text-gray-400">Has derrotado a {boss.name}</p>
+              <p className="text-2xl text-gray-400">
+                Has derrotado a {boss.name}
+              </p>
             </motion.div>
           </motion.div>
         )}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MemoryCard } from './MemoryCard';
 import { ArrowLeft, Star, Zap } from 'lucide-react';
 import type { Universe } from '../App';
@@ -105,11 +105,15 @@ export function GameBoard({ universe, level, onLevelComplete, onBackToMenu }: Ga
           matchedCards[second].isMatched = true;
           setCards(matchedCards);
           setFlippedCards([]);
-          setMatchedPairs(matchedPairs + 1);
-
-          if (matchedPairs + 1 === cardCount / 2) {
-            setTimeout(() => onLevelComplete(), 1000);
-          }
+          
+          setMatchedPairs(prevPairs => {
+            const newPairs = prevPairs + 1;
+            if (newPairs === cardCount / 2) {
+              // Nivel completado
+              setTimeout(() => onLevelComplete(), 1000);
+            }
+            return newPairs;
+          });
         }, 800);
       } else {
         // No match
@@ -183,9 +187,9 @@ export function GameBoard({ universe, level, onLevelComplete, onBackToMenu }: Ga
 
         {/* Game Board */}
         <div 
-          className="grid gap-4 max-w-5xl mx-auto"
+          className="grid gap-2 max-w-2xl mx-auto"
           style={{
-            gridTemplateColumns: `repeat(${Math.min(4, Math.ceil(Math.sqrt(cardCount)))}, minmax(0, 1fr))`,
+            gridTemplateColumns: `repeat(${Math.min(6, Math.ceil(Math.sqrt(cardCount)))}, minmax(0, 1fr))`,
           }}
         >
           <AnimatePresence>
