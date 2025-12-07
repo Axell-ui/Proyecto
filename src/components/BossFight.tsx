@@ -6,6 +6,8 @@ import {
   Swords,
   Zap,
   Shield,
+  Clock,
+  Target,
 } from "lucide-react";
 import type { Universe } from "../App";
 
@@ -23,6 +25,7 @@ const bossConfig = {
     bgGradient: "from-orange-950 via-red-950 to-black",
     glowColor: "#ff4500",
     attacks: ["Llamarada", "Meteorito", "Erupción"],
+    symbols: ["🔥", "⚡", "💥", "🌋"],
   },
   frostheim: {
     name: "Glacius el Eterno",
@@ -31,6 +34,7 @@ const bossConfig = {
     bgGradient: "from-cyan-950 via-blue-950 to-black",
     glowColor: "#00d4ff",
     attacks: ["Ventisca", "Lanza Helada", "Congelación"],
+    symbols: ["❄️", "💎", "🌊", "🧊"],
   },
   neural: {
     name: "Synapse la Mente",
@@ -39,6 +43,7 @@ const bossConfig = {
     bgGradient: "from-emerald-950 via-teal-950 to-black",
     glowColor: "#00ff88",
     attacks: ["Pulso Mental", "Sobrecarga", "Hackeo Neural"],
+    symbols: ["⚡", "🔌", "💻", "🤖"],
   },
   verdalis: {
     name: "Gaia la Ancestral",
@@ -47,6 +52,7 @@ const bossConfig = {
     bgGradient: "from-lime-950 via-green-950 to-black",
     glowColor: "#7fff00",
     attacks: ["Enredadera", "Esporas Tóxicas", "Terremoto"],
+    symbols: ["🌿", "🍃", "🌳", "🌺"],
   },
   lunaris: {
     name: "Noctis el Oscuro",
@@ -55,6 +61,7 @@ const bossConfig = {
     bgGradient: "from-purple-950 via-violet-950 to-black",
     glowColor: "#b19cd9",
     attacks: ["Eclipse", "Rayo Lunar", "Void"],
+    symbols: ["🌙", "⭐", "💫", "🌑"],
   },
 };
 
@@ -72,30 +79,142 @@ export function BossFight({
   const [shakeScreen, setShakeScreen] = useState(false);
   const [showDefeat, setShowDefeat] = useState(false);
 
-  const handleAttack = () => {
-    if (isAttacking || bossAttacking) return;
+  // QTE System States
+  const [gamePhase, setGamePhase] = useState<"idle" | "watching" | "playing" | "validating">("idle");
+  const [bossSequence, setBossSequence] = useState<string[]>([]);
+  const [playerSequence, setPlayerSequence] = useState<string[]>([]);
+  const [sequenceTimer, setSequenceTimer] = useState(10);
+  const [sequenceLength, setSequenceLength] = useState(3);
+  const [showingSymbolIndex, setShowingSymbolIndex] = useState(-1);
+  const [feedback, setFeedback] = useState<"correct" | "incorrect" | null>(null);
+  const [combo, setCombo] = useState(0);
 
-    setIsAttacking(true);
-    const damage = 15 + Math.floor(Math.random() * 10);
+  // Timer countdown
+  useEffect(() => {
+    if (gamePhase === "playing" && sequenceTimer > 0) {
+      const timer = setInterval(() => {
+        setSequenceTimer((prev) => {
+          if (prev <= 0.1) {
+            handleTimeOut();
+            return 0;
+          }
+          return prev - 0.1;
+        });
+      }, 100);
+      return () => clearInterval(timer);
+    }
+  }, [gamePhase, sequenceTimer]);
+
+  // Increase difficulty as boss loses health
+  useEffect(() => {
+    if (bossHealth <= 70 && bossHealth > 40) {
+      setSequenceLength(4);
+    } else if (bossHealth <= 40) {
+      setSequenceLength(5);
+    }
+  }, [bossHealth]);
+
+  const generateSequence = () => {
+    const sequence: string[] = [];
+    for (let i = 0; i < sequenceLength; i++) {
+      const randomSymbol = boss.symbols[Math.floor(Math.random() * boss.symbols.length)];
+      sequence.push(randomSymbol);
+    }
+    return sequence;
+  };
+
+  const handleStartSequence = () => {
+    if (gamePhase !== "idle") return;
+
+    const newSequence = generateSequence();
+    setBossSequence(newSequence);
+    setPlayerSequence([]);
+    setGamePhase("watching");
+    setShowingSymbolIndex(-1);
+
+    // Show sequence one by one
+    newSequence.forEach((_, index) => {
+      setTimeout(() => {
+        setShowingSymbolIndex(index);
+      }, index * 800);
+    });
+
+    // After showing sequence, let player play
+    setTimeout(() => {
+      setShowingSymbolIndex(-1);
+      setGamePhase("playing");
+      setSequenceTimer(8 - sequenceLength * 0.3); // Less time for longer sequences
+    }, newSequence.length * 800 + 500);
+  };
+
+  const handleSymbolClick = (symbol: string) => {
+    if (gamePhase !== "playing") return;
+
+    const newPlayerSequence = [...playerSequence, symbol];
+    setPlayerSequence(newPlayerSequence);
+
+    // Check if sequence is complete
+    if (newPlayerSequence.length === bossSequence.length) {
+      validateSequence(newPlayerSequence);
+    }
+  };
+
+  const validateSequence = (playerSeq: string[]) => {
+    setGamePhase("validating");
+
+    const isCorrect = playerSeq.every((symbol, index) => symbol === bossSequence[index]);
+
+    if (isCorrect) {
+      setFeedback("correct");
+      const criticalDamage = 25 + Math.floor(Math.random() * 10) + combo * 5;
+      setCombo((prev) => prev + 1);
+
+      setTimeout(() => {
+        attackBoss(criticalDamage);
+      }, 1000);
+    } else {
+      setFeedback("incorrect");
+      const weakDamage = 5 + Math.floor(Math.random() * 5);
+      setCombo(0);
+
+      setTimeout(() => {
+        attackBoss(weakDamage);
+      }, 1000);
+    }
+  };
+
+  const handleTimeOut = () => {
+    if (gamePhase !== "playing") return;
+    setGamePhase("validating");
+    setFeedback("incorrect");
+    setCombo(0);
 
     setTimeout(() => {
-      const newBossHealth = Math.max(0, bossHealth - damage);
-      setBossHealth(newBossHealth);
+      attackBoss(0); // No damage on timeout
+    }, 1000);
+  };
 
-      if (newBossHealth <= 0) {
+  const attackBoss = (damage: number) => {
+    setIsAttacking(true);
+    setFeedback(null);
+
+    setTimeout(() => {
+      setBossHealth(Math.max(0, bossHealth - damage));
+      setIsAttacking(false);
+
+      if (bossHealth - damage <= 0) {
         setShowDefeat(true);
         setTimeout(() => onBossDefeated(), 2000);
       } else {
         // Boss counter-attack
         setTimeout(() => {
-          setIsAttacking(false);
-          bossCounterAttack();
+          bossCounterAttack(damage === 0 || damage < 10);
         }, 1000);
       }
     }, 800);
   };
 
-  const bossCounterAttack = () => {
+  const bossCounterAttack = (isAngry: boolean) => {
     setBossAttacking(true);
     setShakeScreen(true);
     const attack =
@@ -104,13 +223,15 @@ export function BossFight({
       ];
     setCurrentAttack(attack);
 
-    const damage = 10 + Math.floor(Math.random() * 15);
+    const baseDamage = 10 + Math.floor(Math.random() * 15);
+    const damage = isAngry ? baseDamage * 1.5 : baseDamage; // Stronger attack if player failed
 
     setTimeout(() => {
       setPlayerHealth(Math.max(0, playerHealth - damage));
       setBossAttacking(false);
       setShakeScreen(false);
       setCurrentAttack("");
+      setGamePhase("idle");
     }, 1500);
   };
 
@@ -350,29 +471,219 @@ export function BossFight({
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={handleAttack}
+              onClick={handleStartSequence}
               disabled={
-                isAttacking || bossAttacking || showDefeat
+                gamePhase !== "idle" || bossAttacking || showDefeat
               }
               className={`px-8 py-4 rounded-xl text-xl flex items-center gap-3 ${
-                isAttacking || bossAttacking
+                gamePhase !== "idle" || bossAttacking
                   ? "bg-gray-700 cursor-not-allowed"
                   : `bg-gradient-to-r ${boss.gradient} hover:brightness-110`
               } disabled:opacity-50 border-2 border-white/20`}
-              style={{
-                boxShadow: isAttacking
-                  ? `0 0 30px ${boss.glowColor}`
-                  : "none",
-              }}
             >
               <Zap className="w-6 h-6" />
               <span>
-                {isAttacking ? "Atacando..." : "¡Atacar!"}
+                {gamePhase !== "idle" ? "En proceso..." : "¡Iniciar Ataque!"}
               </span>
             </motion.button>
+
+            {combo > 0 && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="flex items-center gap-2 px-4 py-2 bg-yellow-600/20 rounded-xl border-2 border-yellow-500"
+              >
+                <Target className="w-5 h-5 text-yellow-500" />
+                <span className="text-yellow-500">Combo x{combo}</span>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* QTE System - Watching Phase */}
+      <AnimatePresence>
+        {gamePhase === "watching" && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm z-50"
+          >
+            <div className="text-center">
+              <motion.h2
+                className="text-5xl mb-8"
+                style={{
+                  textShadow: `0 0 40px ${boss.glowColor}`,
+                }}
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              >
+                ¡Memoriza la Secuencia!
+              </motion.h2>
+
+              {/* Boss Sequence Display */}
+              <div className="flex gap-4 mb-6 justify-center">
+                {bossSequence.map((symbol, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{
+                      scale: showingSymbolIndex === index ? 1.3 : 1,
+                      opacity: showingSymbolIndex >= index ? 1 : 0.3,
+                    }}
+                    className={`w-24 h-24 rounded-xl flex items-center justify-center text-5xl ${
+                      showingSymbolIndex === index
+                        ? `bg-gradient-to-br ${boss.gradient} shadow-2xl`
+                        : "bg-gray-800"
+                    } border-4 ${
+                      showingSymbolIndex === index ? "border-white" : "border-gray-700"
+                    }`}
+                    style={{
+                      boxShadow:
+                        showingSymbolIndex === index
+                          ? `0 0 40px ${boss.glowColor}`
+                          : "none",
+                    }}
+                  >
+                    {symbol}
+                  </motion.div>
+                ))}
+              </div>
+
+              <p className="text-xl text-gray-400">
+                Observa atentamente...
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* QTE System - Playing Phase */}
+      <AnimatePresence>
+        {gamePhase === "playing" && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm z-50"
+          >
+            <div className="text-center max-w-2xl">
+              <motion.h2
+                className="text-5xl mb-4"
+                style={{
+                  textShadow: `0 0 40px ${boss.glowColor}`,
+                }}
+              >
+                ¡Repite la Secuencia!
+              </motion.h2>
+
+              {/* Timer Bar */}
+              <div className="w-full h-4 bg-gray-800 rounded-full mb-6 overflow-hidden border-2 border-gray-700">
+                <motion.div
+                  className={`h-full bg-gradient-to-r ${boss.gradient}`}
+                  animate={{ width: `${(sequenceTimer / 8) * 100}%` }}
+                  transition={{ duration: 0.1 }}
+                />
+              </div>
+
+              <div className="flex items-center justify-center gap-2 mb-8">
+                <Clock className="w-6 h-6 text-yellow-500" />
+                <span className="text-2xl text-yellow-500">
+                  {sequenceTimer.toFixed(1)}s
+                </span>
+              </div>
+
+              {/* Player Progress */}
+              <div className="flex gap-3 mb-8 justify-center">
+                {bossSequence.map((symbol, index) => (
+                  <div
+                    key={index}
+                    className={`w-20 h-20 rounded-xl flex items-center justify-center text-4xl ${
+                      playerSequence[index]
+                        ? playerSequence[index] === symbol
+                          ? "bg-green-600"
+                          : "bg-red-600"
+                        : "bg-gray-800"
+                    } border-4 border-gray-700`}
+                  >
+                    {playerSequence[index] || "?"}
+                  </div>
+                ))}
+              </div>
+
+              {/* Symbol Buttons */}
+              <div className="grid grid-cols-4 gap-4">
+                {boss.symbols.map((symbol, index) => (
+                  <motion.button
+                    key={index}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handleSymbolClick(symbol)}
+                    disabled={playerSequence.length >= bossSequence.length}
+                    className={`w-24 h-24 rounded-xl text-5xl bg-gradient-to-br ${boss.gradient} hover:brightness-110 disabled:opacity-50 border-4 border-white/20 transition-all`}
+                    style={{
+                      boxShadow: `0 0 20px ${boss.glowColor}`,
+                    }}
+                  >
+                    {symbol}
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* QTE System - Validating Phase */}
+      <AnimatePresence>
+        {gamePhase === "validating" && feedback && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0 }}
+            className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm z-50"
+          >
+            <motion.div
+              animate={{
+                rotate: feedback === "correct" ? [0, 5, -5, 0] : [0, -5, 5, 0],
+              }}
+              transition={{
+                duration: 0.5,
+                repeat: 2,
+              }}
+              className="text-center"
+            >
+              <motion.div
+                className={`text-9xl mb-6`}
+                animate={{
+                  scale: [1, 1.2, 1],
+                }}
+                transition={{ duration: 0.5 }}
+              >
+                {feedback === "correct" ? "✓" : "✗"}
+              </motion.div>
+              <h2
+                className={`text-7xl mb-4 ${
+                  feedback === "correct" ? "text-green-500" : "text-red-500"
+                }`}
+                style={{
+                  textShadow: `0 0 40px ${
+                    feedback === "correct" ? "#00ff00" : "#ff0000"
+                  }`,
+                }}
+              >
+                {feedback === "correct" ? "¡PERFECTO!" : "¡FALLASTE!"}
+              </h2>
+              <p className="text-2xl text-gray-400">
+                {feedback === "correct"
+                  ? `¡Daño Crítico! ${combo > 1 ? `Combo x${combo}` : ""}`
+                  : "El jefe contraatacará con furia..."}
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Victory Message */}
       <AnimatePresence>
