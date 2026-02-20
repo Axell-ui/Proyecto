@@ -90,7 +90,7 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               EVOLUTIVO
             </h2>
           </motion.div>
-          <p className="text-gray-400 mt-4 flex items-center justify-center gap-2">
+          <p className="text-white mt-4 flex items-center justify-center gap-2">
             <Sparkles className="w-4 h-4" />
             Modo Multijugador
             <Sparkles className="w-4 h-4" />
@@ -112,14 +112,14 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                     <Mail className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl">Paso 1 de 2</h3>
-                    <p className="text-sm text-gray-400">Ingresa tu email</p>
+                    <h3 className="text-xl text-white">Paso 1 de 2</h3>
+                    <p className="text-sm text-white">Ingresa tu email</p>
                   </div>
                 </div>
 
                 <form onSubmit={handleSendCode} className="space-y-4">
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">
+                    <label className="block text-sm text-white mb-2">
                       Correo electrónico
                     </label>
                     <input
@@ -127,7 +127,7 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="tu@email.com"
-                      className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl focus:outline-none focus:border-cyan-500 transition-colors"
+                      className="text-white w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl focus:outline-none focus:border-cyan-500 transition-colors"
                     />
                   </div>
 
@@ -135,7 +135,7 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="text-red-400 text-sm"
+                      className="text-red-500 text-sm"
                     >
                       {error}
                     </motion.div>
@@ -152,7 +152,7 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   </motion.button>
                 </form>
 
-                <p className="text-xs text-gray-500 text-center mt-4">
+                <p className="text-xs text-gray-400 text-center mt-4">
                   Te enviaremos un código de 6 dígitos a tu email
                 </p>
               </div>
@@ -172,7 +172,7 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   </div>
                   <div>
                     <h3 className="text-xl">Paso 2 de 2</h3>
-                    <p className="text-sm text-gray-400">Verifica tu código</p>
+                    <p className="text-sm text-white">Verifica tu código</p>
                   </div>
                 </div>
 
@@ -201,7 +201,7 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="text-red-400 text-sm"
+                      className="text-red-500 text-sm"
                     >
                       {error}
                     </motion.div>
@@ -220,7 +220,7 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   <button
                     type="button"
                     onClick={() => setStep('email')}
-                    className="w-full py-2 text-sm text-gray-400 hover:text-white transition-colors"
+                    className="w-full py-2 text-sm text-gray-300 hover:text-white transition-colors"
                   >
                     ← Cambiar email
                   </button>
