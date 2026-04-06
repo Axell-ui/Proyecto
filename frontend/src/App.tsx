@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { LoginScreen } from './components/LoginScreen';
+import { RegisterScreen } from './components/RegisterScreen';
 import { LobbyScreen } from './components/LobbyScreen';
 import { RoomWaiting } from './components/RoomWaiting';
 import { MultiplayerGame } from './components/MultiplayerGame';
@@ -12,7 +13,7 @@ import socket from './lib/socket';
 
 export type Universe = 'volcania' | 'frostheim' | 'neural' | 'verdalis' | 'lunaris';
 
-export type GameScreen = 'login' | 'lobby' | 'roomWaiting' | 'multiplayerGame' | 'finalResults' | 'menu' | 'game' | 'boss' | 'reward';
+export type GameScreen = 'login' | 'register' | 'lobby' | 'roomWaiting' | 'multiplayerGame' | 'finalResults' | 'menu' | 'game' | 'boss' | 'reward';
 
 export type Player = {
   id: string;
@@ -34,7 +35,7 @@ export type Room = {
 
 export default function App() {
   const API_BASE = (import.meta.env.VITE_API_BASE as string) || 'http://localhost:5175';
-  const [currentScreen, setCurrentScreen] = useState<GameScreen>('login');
+  const [currentScreen, setCurrentScreen] = useState<GameScreen>('register');
   const [currentUser, setCurrentUser] = useState<Player | null>(null);
   const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
   
@@ -323,7 +324,17 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black overflow-hidden">
       {currentScreen === 'login' && (
-        <LoginScreen onLoginSuccess={handleLoginSuccess} />
+        <LoginScreen 
+          onLoginSuccess={handleLoginSuccess} 
+          onRegisterRedirect={() => setCurrentScreen('register')} 
+        />
+      )}
+
+      {currentScreen === 'register' && (
+        <RegisterScreen 
+          onLoginRedirect={() => setCurrentScreen('login')} 
+          onRegisterSuccess={handleLoginSuccess}
+        />
       )}
 
       {currentScreen === 'lobby' && currentUser && (

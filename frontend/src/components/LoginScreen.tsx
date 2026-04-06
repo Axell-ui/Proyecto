@@ -4,9 +4,10 @@ import { Mail, Lock, Sparkles, ArrowRight, Check } from 'lucide-react';
 
 interface LoginScreenProps {
   onLoginSuccess: (email: string) => void;
+  onRegisterRedirect?: () => void;
 }
 
-export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
+export function LoginScreen({ onLoginSuccess, onRegisterRedirect }: LoginScreenProps) {
   const [step, setStep] = useState<'email' | 'code'>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -155,6 +156,16 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                 <p className="text-xs text-gray-400 text-center mt-4">
                   Te enviaremos un código de 6 dígitos a tu email
                 </p>
+
+                {onRegisterRedirect && (
+                  <button
+                    type="button"
+                    onClick={onRegisterRedirect}
+                    className="w-full mt-6 py-2 text-sm text-cyan-400 hover:text-cyan-300 transition-colors uppercase tracking-widest"
+                  >
+                    ¿No tienes cuenta? Regístrate
+                  </button>
+                )}
               </div>
             </motion.div>
           ) : (
