@@ -142,7 +142,7 @@ export function RegisterScreen({ onLoginRedirect, onRegisterSuccess }: RegisterS
                         type="email"
                       />
                     </div>
-                  </div>
+                  </div>k
 
                   {/* Neural Key / Password */}
                   <div className="space-y-2">
